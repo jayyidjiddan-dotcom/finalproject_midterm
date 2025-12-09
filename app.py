@@ -50,15 +50,21 @@ input_df = pd.DataFrame({
 st.subheader("Hasil Prediksi")
 
 if st.button("Prediksi Suhu"):
-    # 1) prediksi dalam skala 0–1
-    y_scaled = model.predict(input_df)[0]
+    # 1) prediksi dalam skala 0–1 (hasil model)
+    y_scaled = float(model.predict(input_df)[0])
 
-    # 2) balikkan ke derajat Celsius
+    # 2) Jepit ke rentang [0, 1] untuk menghindari nilai di luar range
+    y_scaled_clipped = float(np.clip(y_scaled, 0.0, 1.0))
+
+    # 3) Balikkan ke derajat Celsius
     y_celsius = temp_scaler.inverse_transform(
-        np.array(y_scaled).reshape(-1, 1)
+        np.array([[y_scaled_clipped]])
     )[0, 0]
 
-    st.write(f"Perkiraan suhu (skala MinMax 0–1): **{y_scaled:.4f}**")
+    # Tampilkan hasil
+    st.write(f"Perkiraan suhu (skala MinMax 0–1): **{y_scaled_clipped:.4f}**")
     st.success(f"Perkiraan suhu dalam °C: **{y_celsius:.2f} °C**")
-    st.caption("Model dilatih pada target yang telah di-*scale* 0–1, "
-               "kemudian hasil dikonversi kembali ke derajat Celsius.")
+    st.caption(
+        "Model dilatih pada target yang telah di-*scale* 0–1, "
+        "kemudian hasil dikonversi kembali ke derajat Celsius."
+    )
